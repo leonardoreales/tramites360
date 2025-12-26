@@ -1,4 +1,10 @@
 import WhatsAppButton from "../ui/WhatsAppButton";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "../ui/accordion";
 
 const FAQ_ITEMS = [
   {
@@ -29,31 +35,36 @@ export default function FaqSection() {
         </p>
 
         <div className="mt-8 grid gap-4 md:grid-cols-2">
-          {FAQ_ITEMS.map((item) => (
-            <details
-              key={item.q}
-              className="group rounded-3xl border border-white/10 bg-white/5 p-6 transition hover:bg-white/[0.07]"
-            >
-              <summary className="cursor-pointer list-none font-extrabold text-white">
-                <span className="flex items-center justify-between gap-3">
-                  {item.q}
-                  <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/70 transition group-open:bg-white/10">
-                    Ver
+          <Accordion type="single" collapsible className="contents">
+            {FAQ_ITEMS.map((item, idx) => (
+              <AccordionItem
+                key={item.q}
+                value={`item-${idx}`}
+                className="rounded-3xl border border-white/10 bg-white/5 px-6 transition hover:bg-white/[0.07]"
+              >
+                {/* Quitamos el underline por defecto del trigger y mantenemos el layout visual */}
+                <AccordionTrigger className="py-5 text-left font-extrabold text-white hover:no-underline">
+                  <span className="flex w-full items-center justify-between gap-3">
+                    <span>{item.q}</span>
+                    <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/70">
+                      Ver
+                    </span>
                   </span>
-                </span>
-              </summary>
-              <p className="mt-3 text-white/70">{item.a}</p>
-            </details>
-          ))}
+                </AccordionTrigger>
+
+                <AccordionContent className="pb-5 text-white/70">
+                  {item.a}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
         </div>
 
         <div className="mt-10 rounded-3xl border border-white/10 bg-slate-900/30 p-6">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
               <div className="text-lg font-extrabold">¿Listo para el diagnóstico?</div>
-              <p className="mt-1 text-white/70">
-                Entra por WhatsApp y te guiamos paso a paso.
-              </p>
+              <p className="mt-1 text-white/70">Entra por WhatsApp y te guiamos paso a paso.</p>
             </div>
             <div className="md:w-[280px]">
               <WhatsAppButton
