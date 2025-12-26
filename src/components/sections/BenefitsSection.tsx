@@ -1,5 +1,6 @@
 import WhatsAppButton from "../ui/WhatsAppButton";
 import { BRAND } from "../../config/brand";
+import { Card, CardContent } from "../ui/card";
 
 export default function BenefitsSection() {
   return (
@@ -22,18 +23,20 @@ export default function BenefitsSection() {
 
         <div className="mt-10 grid gap-4 md:grid-cols-2">
           {BRAND.benefits.map((b) => (
-            <article
+            <Card
               key={b.title}
-              className="group relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-6 transition hover:bg-white/[0.07]"
+              className="group relative overflow-hidden rounded-3xl border-white/10 bg-white/5 text-white transition hover:bg-white/[0.07]"
             >
               <div className="pointer-events-none absolute inset-0 opacity-0 transition group-hover:opacity-100">
                 <div className="absolute -right-24 -top-24 h-56 w-56 rounded-full bg-cyan-400/10 blur-2xl" />
                 <div className="absolute -left-24 -bottom-24 h-56 w-56 rounded-full bg-indigo-500/10 blur-2xl" />
               </div>
 
-              <h3 className="relative text-lg font-extrabold">{b.title}</h3>
-              <p className="relative mt-2 text-white/70">{b.text}</p>
-            </article>
+              <CardContent className="relative p-6">
+                <h3 className="text-lg font-extrabold">{b.title}</h3>
+                <p className="mt-2 text-white/70">{b.text}</p>
+              </CardContent>
+            </Card>
           ))}
         </div>
 
