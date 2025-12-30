@@ -1,5 +1,16 @@
 // src/modules/tracking/viewmodels/tracking.vm.ts
-import type { CaseEvidence, CaseEvent, CaseLookupResponse, CaseStage } from "../tracking.types";
+import type {
+  CaseEvidence,
+  CaseEvent,
+  CaseLookupResponse,
+  CaseStage,
+} from "../tracking.types";
+
+export type TrackingStageVM = {
+  current: CaseStage;
+  index: number;
+  all: CaseStage[];
+};
 
 export type TrackingTimelineVM = {
   events: CaseEvent[];
@@ -14,16 +25,15 @@ export type TrackingMetaVM = {
 
 export type TrackingVM = {
   case: CaseLookupResponse;
-  currentIndex: number;
-  currentStage: CaseStage;
+  stage: TrackingStageVM;
   timeline: TrackingTimelineVM;
   meta: TrackingMetaVM;
 };
 
-/**
- * Mantén esto puro: sin hooks, sin UI, sin efectos.
- * Solo derivados deterministas (fácil de testear y refactorizar).
- */
+/* =========================
+   Helpers puros (derivados)
+   ========================= */
+
 function computeCurrentIndex(data: CaseLookupResponse): number {
   const stages = data.stages ?? [];
   if (!stages.length) return 0;
@@ -32,32 +42,31 @@ function computeCurrentIndex(data: CaseLookupResponse): number {
   return idx >= 0 ? idx : 0;
 }
 
-function computeCurrentStage(data: CaseLookupResponse, idx: number): CaseStage {
-  const stages = data.stages ?? [];
-  if (!stages.length) {
-    // Esto no debería pasar si el backend/mock está sano,
-    // pero evitamos romper la UI por completo.
-    return {
-      id: "unknown",
-      title: "Sin etapas",
-      subtitle: "No hay información de etapas disponible",
-      status: "pending",
-    };
-  }
-
-  return stages[idx] ?? stages[0]!;
+function computeCurrentStage(
+  stages: CaseStage[],
+  index: number
+): CaseStage {
+  return stages[index] ?? stages[0]!;
 }
 
 function normalizeCode(s?: string): string {
   return (s ?? "").trim().toUpperCase();
 }
 
-function computeWhatsAppMessage(args: { data?: CaseLookupResponse | null; codeInput?: string }): string {
-  const code = normalizeCode(args.data?.code ?? args.codeInput);
+function computeWhatsAppMessage(
+  data: CaseLookupResponse,
+  codeInput?: string
+): string {
+  const code = normalizeCode(data.code ?? codeInput);
 
-  if (code) return `Hola, quiero consultar el estado de mi caso ${code}.`;
-  return "Hola, quiero consultar el estado de mi caso (tengo mi código de seguimiento).";
+  return code
+    ? `Hola, quiero consultar el estado de mi caso ${code}.`
+    : "Hola, quiero consultar el estado de mi caso (tengo mi código de seguimiento).";
 }
+
+/* =========================
+   Builder del ViewModel
+   ========================= */
 
 export function buildTrackingVM(args: {
   data: CaseLookupResponse | null | undefined;
@@ -66,23 +75,26 @@ export function buildTrackingVM(args: {
   const data = args.data ?? null;
   if (!data) return null;
 
-  const stagesCount = data.stages?.length ?? 0;
-  if (stagesCount === 0) return null;
+  const stages = data.stages ?? [];
+  if (!stages.length) return null;
 
-  const currentIndex = computeCurrentIndex(data);
-  const currentStage = computeCurrentStage(data, currentIndex);
+  const index = computeCurrentIndex(data);
+  const current = computeCurrentStage(stages, index);
 
   return {
     case: data,
-    currentIndex,
-    currentStage,
+    stage: {
+      current,
+      index,
+      all: stages,
+    },
     timeline: {
       events: data.events ?? [],
       evidences: data.evidences ?? [],
       lastUpdatedISO: data.lastUpdatedISO,
     },
     meta: {
-      waMessage: computeWhatsAppMessage({ data, codeInput: args.codeInput }),
+      waMessage: computeWhatsAppMessage(data, args.codeInput),
       showResults: true,
     },
   };
